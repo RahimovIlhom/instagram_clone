@@ -60,10 +60,11 @@ class CommentSerializer(serializers.ModelSerializer):
     comment_like_count = serializers.SerializerMethodField('get_comment_like_count')
     me_like = serializers.SerializerMethodField('get_me_like')
     replises = serializers.SerializerMethodField('get_replises')
+    post = serializers.UUIDField(read_only=True)
 
     class Meta:
         model = Comment
-        fields = ['id', 'author', 'comment', 'create_time', 'comment_like_count', 'me_like', 'replises']
+        fields = ['id', 'author', 'post', 'comment', 'create_time', 'comment_like_count', 'me_like', 'replises']
 
     def get_comment_like_count(self, obj):
         return obj.likes.count()
@@ -79,29 +80,28 @@ class CommentSerializer(serializers.ModelSerializer):
         return False
 
     def get_replises(self, obj):
-        replises = self.__class__(obj)
-        return replises
-
-# if obj.child.exists():
-#     serializers = self.__class__(obj.child.all(), many=True, context=self.context)
-#     return serializers.data
-# else:
-#     return None
+        if obj.childs.exists():
+            serializers = self.__class__(obj.child.all(), many=True, context=self.context)
+            return serializers.data
+        else:
+            return None
 
 
 class PostLikeSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     author = UserSerializer(read_only=True)
+    post = serializers.UUIDField()
 
     class Meta:
         model = PostLike
-        fields = ['id', 'author']
+        fields = ['id', 'author', 'post']
 
 
 class CommentLikeSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     author = UserSerializer(read_only=True)
+    comment = serializers.UUIDField()
 
     class Meta:
         model = CommentLike
-        fields = ['id', 'author']
+        fields = ['id', 'author', 'comment']
